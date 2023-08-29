@@ -43,22 +43,26 @@ class FHIRRetriever:
         #https://kf-api-fhir-service.kidsfirstdrc.org/Condition?patient.identifier=PT_8NNFJYG5&_format=json
         
         # patient_id = "PT_8NNFJYG5"
+        patients_codes ={}
         for patient_id in patients:
             target_url = f"{self.KIDS_FIRST_FHIR}Condition?patient.identifier={patient_id}&_format=json"
             print(f"Target url {target_url}")
             req = requests.get(target_url)
             try:
                 req_j = req.json()
-                print(req_j)
+                
                 codes = []
                 for entry in req_j['entry']:
-                    code = entry['resource']['code']
-                    pprint.pprint(code)
+                    code_entry = entry['resource']['code']
+                    pprint.pprint(code_entry)
                     print("-"*40 + "\n")
-                    
+                    for item in code_entry['coding']:
+                        codes.append(item['code'])
+                patients_codes[patient_id] = codes
             except KeyError:
                 print ("Unable to serialize to JSON")
-
+        print(patients_codes)
+        return patients_codes
 
 
 if __name__ == "__main__":
