@@ -43,9 +43,9 @@ class FHIRRetriever:
         #https://kf-api-fhir-service.kidsfirstdrc.org/Condition?patient.identifier=PT_8NNFJYG5&_format=json
         
         # patient_id = "PT_8NNFJYG5"
-        patients_codes ={}
+        patients_codes =[]
         for patient_id in patients:
-            target_url = f"{self.KIDS_FIRST_FHIR}Condition?patient.identifier={patient_id}&_format=json"
+            target_url = f"{self.KIDS_FIRST_FHIR}Condition?subject.identifier={patient_id}&_tag=SD_65064P2Z&_format=json"
             print(f"Target url {target_url}")
             req = requests.get(target_url)
             try:
@@ -58,7 +58,7 @@ class FHIRRetriever:
                     print("-"*40 + "\n")
                     for item in code_entry['coding']:
                         codes.append(item['code'])
-                patients_codes[patient_id] = codes
+                patients_codes.append({patient_id : codes})
             except KeyError:
                 print ("Unable to serialize to JSON")
         print(patients_codes)
@@ -73,5 +73,5 @@ if __name__ == "__main__":
     #                         contained in `AWSELBAuthSessionCookie-0`.")
     args = parser.parse_args()
     fhir_retriever = FHIRRetriever()
-    req = fhir_retriever.retrieve_hpo_terms(["PT_8NNFJYG5"])
+    req = fhir_retriever.retrieve_hpo_terms(["PT_02CP8NYR", "PT_02ZWYB9A", "PT_8NNFJYG5"])
 
