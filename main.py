@@ -30,6 +30,7 @@ import datetime
 import requests
 import simplejson
 import pprint
+import pandas as pd
 
 
 class FHIRRetriever:
@@ -37,15 +38,15 @@ class FHIRRetriever:
         #self.fhir_auth_cookie = fhir_auth_cookie
         self.KIDS_FIRST_FHIR= kids_first_fhir_url
 
-    def retrieve_hpo_terms(self, patients):
+    def retrieve_hpo_terms(self, df_patients):
         """Retrieve the hpo terms for each patients, returning a dictionary with key the Patient Identifier and
         the value the list of HPO terms found"""
         #https://kf-api-fhir-service.kidsfirstdrc.org/Condition?patient.identifier=PT_8NNFJYG5&_format=json
         
         # patient_id = "PT_8NNFJYG5"
         patients_codes =[]
-        for patient_id in patients:
-            target_url = f"{self.KIDS_FIRST_FHIR}Condition?subject.identifier={patient_id}&_tag=SD_65064P2Z&_format=json"
+        for index, row in df.iterrows():
+            target_url = f"{self.KIDS_FIRST_FHIR}Condition?subject.identifier={row['participant_id']}&_tag={row['dataset_tag']}&_format=json"
             print(f"Target url {target_url}")
             req = requests.get(target_url)
             try:
@@ -71,7 +72,9 @@ if __name__ == "__main__":
     #                     help="The Authorization cookie from the INCLUDE FHIR Server (https://kf-api-fhir-service.kidsfirstdrc.org/) \
     #                         To obtain the cookie, open the Chorme or Firefox console, go to the Application tab and copy the value \
     #                         contained in `AWSELBAuthSessionCookie-0`.")
+    parser.add_argument("patient_list", help="CSV with patient list and dataset tag")
     args = parser.parse_args()
     fhir_retriever = FHIRRetriever()
-    req = fhir_retriever.retrieve_hpo_terms(["PT_02CP8NYR", "PT_02ZWYB9A", "PT_8NNFJYG5"])
+    df = pd.read_csv(args.patient_list, sep=";")
+    req = fhir_retriever.retrieve_hpo_terms(df)
 
