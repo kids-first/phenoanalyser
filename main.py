@@ -18,6 +18,8 @@ Shu, B. et al. (2022).
 Human phenotype ontology annotation and cluster analysis for pulmonary atresia to unravel clinical outcomes. 
 Frontiers in Cardiovascular Medicine, 9, 898289. https://doi.org/10.3389/fcvm.2022.898289
 
+--> Bottom two plots of figure 2 is what to replicate
+
 Westbury, S. K. et al. BRIDGE-BPD Consortium. (2015). Human phenotype ontology annotation and cluster analysis #
 to unravel genetic defects in 707 cases with unexplained bleeding and platelet disorders. 
 Genome Medicine, 7(1), 36. https://doi.org/10.1186/s13073-015-0151-5
@@ -43,10 +45,10 @@ class FHIRRetriever:
         the value the list of HPO terms found"""
         #https://kf-api-fhir-service.kidsfirstdrc.org/Condition?patient.identifier=PT_8NNFJYG5&_format=json
         
-        # patient_id = "PT_8NNFJYG5"
+        
         patients_codes =[]
         for index, row in df.iterrows():
-            target_url = f"{self.KIDS_FIRST_FHIR}Condition?subject.identifier={row['participant_id']}&_tag={row['dataset_tag']}&_format=json"
+            target_url = f"{self.KIDS_FIRST_FHIR}Condition?subject.identifier={row['participant_id']}&_format=json"
             print(f"Target url {target_url}")
             req = requests.get(target_url)
             try:
@@ -59,10 +61,10 @@ class FHIRRetriever:
                     print("-"*40 + "\n")
                     for item in code_entry['coding']:
                         codes.append(item['code'])
-                patients_codes.append({patient_id : codes})
+                patients_codes.append({row['participant_id'] : codes})
             except KeyError:
                 print ("Unable to serialize to JSON")
-        print(patients_codes)
+        pprint.pprint(patients_codes)
         return patients_codes
 
 
@@ -75,6 +77,6 @@ if __name__ == "__main__":
     parser.add_argument("patient_list", help="CSV with patient list and dataset tag")
     args = parser.parse_args()
     fhir_retriever = FHIRRetriever()
-    df = pd.read_csv(args.patient_list, sep=";")
+    df = pd.read_csv(args.patient_list, sep="\t")
     req = fhir_retriever.retrieve_hpo_terms(df)
 
