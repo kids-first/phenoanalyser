@@ -1,3 +1,5 @@
 .env
 __pycache__
 ipython_log.py
+temp/
+.DS_Store
