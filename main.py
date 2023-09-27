@@ -33,6 +33,8 @@ import requests
 import simplejson
 import pprint
 import pandas as pd
+from collections import Counter
+import matplotlib.pyplot as plt
 
 
 class FHIRRetriever:
@@ -46,10 +48,11 @@ class FHIRRetriever:
         #https://kf-api-fhir-service.kidsfirstdrc.org/Condition?patient.identifier=PT_8NNFJYG5&_format=json
         
         
-        patients_codes =[]
+        #patients_codes =[]
+        patients_codes_dict ={}
         for index, row in df.iterrows():
             target_url = f"{self.KIDS_FIRST_FHIR}Condition?subject.identifier={row['participant_id']}&_format=json"
-            print(f"Target url {target_url}")
+            #print(f"Target url {target_url}")
             req = requests.get(target_url)
             try:
                 req_j = req.json()
@@ -57,26 +60,38 @@ class FHIRRetriever:
                 codes = []
                 for entry in req_j['entry']:
                     code_entry = entry['resource']['code']
-                    pprint.pprint(code_entry)
-                    print("-"*40 + "\n")
+                    #pprint.pprint(code_entry)
+                    #print("-"*40 + "\n")
                     for item in code_entry['coding']:
                         codes.append(item['code'])
-                patients_codes.append({row['participant_id'] : codes})
+                #patients_codes.append({row['participant_id'] : codes})
+                patients_codes_dict[row['participant_id']] = codes
             except KeyError:
                 print ("Unable to serialize to JSON")
-        pprint.pprint(patients_codes)
-        return patients_codes
+        #pprint.pprint(patients_codes)
+        #pprint.pprint(patients_codes_dict)
+        #print ("\n")
+        #print(type(patients_codes))
+        #print(type(patients_codes_dict))
+        #print ("\n")
+
+        return patients_codes_dict
+
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Retrieve HPO terms from the Kids First FHIR Server')
     # parser.add_argument("--include_fhir_authentication_cookie", required=True, 
     #                     help="The Authorization cookie from the INCLUDE FHIR Server (https://kf-api-fhir-service.kidsfirstdrc.org/) \
-    #                         To obtain the cookie, open the Chorme or Firefox console, go to the Application tab and copy the value \
+    #                         To obtain the cookie, open the Chrome or Firefox console, go to the Application tab and copy the value \
     #                         contained in `AWSELBAuthSessionCookie-0`.")
     parser.add_argument("patient_list", help="CSV with patient list and dataset tag")
     args = parser.parse_args()
     fhir_retriever = FHIRRetriever()
+    
     df = pd.read_csv(args.patient_list, sep="\t")
-    req = fhir_retriever.retrieve_hpo_terms(df)
+    patients_codes_dict = fhir_retriever.retrieve_hpo_terms(df)
+    
+
+
 
