@@ -102,7 +102,12 @@ if __name__ == "__main__":
     counts = Counter(codes_seq)
     dfplot = pd.DataFrame.from_dict(counts, orient='index')
     dfplot.plot(kind='bar')
+
+    plt.title('Frequency of terms')
+    plt.xlabel('Count')
+    plt.ylabel('Terms')
     #displaying to allow for manual fine tuning of plot features
-    plt.show()
+    #plt.show()
+    plt.savefig("Frequency_of_terms.png")
 
 
