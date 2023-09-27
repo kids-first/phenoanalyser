@@ -2,7 +2,7 @@
 Steps:
 
 1) Retrieve patient information based on variants
-2) Traverse Patient and organize them via HPO terms
+2) Traverse Patient and organize them via HPO, NCIT and MONDO terms
 3) Build Clustering of HPO terms
 
 
@@ -67,7 +67,7 @@ class FHIRRetriever:
                 #patients_codes.append({row['participant_id'] : codes})
                 patients_codes_dict[row['participant_id']] = codes
             except KeyError:
-                print ("Unable to serialize to JSON")
+                print ("Unable to serialize to JSON for ", target_url)
         #pprint.pprint(patients_codes)
         #pprint.pprint(patients_codes_dict)
         #print ("\n")
@@ -92,6 +92,17 @@ if __name__ == "__main__":
     df = pd.read_csv(args.patient_list, sep="\t")
     patients_codes_dict = fhir_retriever.retrieve_hpo_terms(df)
     
+    codes_seq = ()
+    for patient in patients_codes_dict:
+        codes_seq = codes_seq + tuple(patients_codes_dict[patient])
 
+    print ("\n")
+    print ('codes_seq', codes_seq)
+
+    counts = Counter(codes_seq)
+    dfplot = pd.DataFrame.from_dict(counts, orient='index')
+    dfplot.plot(kind='bar')
+    #displaying to allow for manual fine tuning of plot features
+    plt.show()
 
 
