@@ -33,6 +33,7 @@ import requests
 import simplejson
 import pprint
 import pandas as pd
+import re
 from collections import Counter
 import matplotlib.pyplot as plt
 
@@ -42,7 +43,7 @@ class FHIRRetriever:
         #self.fhir_auth_cookie = fhir_auth_cookie
         self.KIDS_FIRST_FHIR= kids_first_fhir_url
 
-    def retrieve_hpo_terms(self, df_patients):
+    def retrieve_all_terms(self, df_patients):
         """Retrieve the hpo terms for each patients, returning a dictionary with key the Patient Identifier and
         the value the list of HPO terms found"""
         #https://kf-api-fhir-service.kidsfirstdrc.org/Condition?patient.identifier=PT_8NNFJYG5&_format=json
@@ -90,7 +91,7 @@ if __name__ == "__main__":
     fhir_retriever = FHIRRetriever()
     
     df = pd.read_csv(args.patient_list, sep="\t")
-    patients_codes_dict = fhir_retriever.retrieve_hpo_terms(df)
+    patients_codes_dict = fhir_retriever.retrieve_all_terms(df)
     
     codes_seq = ()
     for patient in patients_codes_dict:
@@ -103,11 +104,71 @@ if __name__ == "__main__":
     dfplot = pd.DataFrame.from_dict(counts, orient='index')
     dfplot.plot(kind='bar')
 
-    plt.title('Frequency of terms')
+    plt.title('Frequency of all terms')
     plt.xlabel('Count')
     plt.ylabel('Terms')
     #displaying to allow for manual fine tuning of plot features
-    #plt.show()
-    plt.savefig("Frequency_of_terms.png")
+    plt.show()
+    plt.savefig("Frequency_of_all_terms.png")
+
+    #separating out NCIT, MONDO and HPO terms
+    hpo_codes_seq = ()
+    mondo_codes_seq = ()
+    ncit_codes_seq = ()
+    for patient in patients_codes_dict:
+        patient_all_codes_seq = ()
+        patient_all_codes_seq = tuple(patients_codes_dict[patient])
+
+        for terms_tup in patient_all_codes_seq:
+
+
+            if terms_tup.startswith('H'):
+                hpo_codes_seq = hpo_codes_seq + (terms_tup,)
+            
+            if terms_tup.startswith('M'):
+                mondo_codes_seq = mondo_codes_seq + (terms_tup,)
+            
+            if terms_tup.startswith('N'):
+                ncit_codes_seq = ncit_codes_seq + (terms_tup,)
+
+    print ("\n\n\n")
+    print ('hpo_codes_seq', hpo_codes_seq)
+    counts = Counter(hpo_codes_seq)
+    dfplot = pd.DataFrame.from_dict(counts, orient='index')
+    dfplot.plot(kind='bar')
+
+    plt.title('Frequency of HPO terms')
+    plt.xlabel('Count')
+    plt.ylabel('Terms')
+    #displaying to allow for manual fine tuning of plot features
+    plt.show()
+    plt.savefig("Frequency_of_HPO_terms.png")
+
+    print ("\n\n\n")
+    print ('mondo_codes_seq', mondo_codes_seq)
+    counts = Counter(mondo_codes_seq)
+    dfplot = pd.DataFrame.from_dict(counts, orient='index')
+    dfplot.plot(kind='bar')
+
+    plt.title('Frequency of MONDO terms')
+    plt.xlabel('Count')
+    plt.ylabel('Terms')
+    #displaying to allow for manual fine tuning of plot features
+    plt.show()
+    plt.savefig("Frequency_of_MONDO_terms.png")
+
+    
+    print ("\n\n\n")
+    print ('ncit_codes_seq', ncit_codes_seq)
+    counts = Counter(ncit_codes_seq)
+    dfplot = pd.DataFrame.from_dict(counts, orient='index')
+    dfplot.plot(kind='bar')
+
+    plt.title('Frequency of NCIT terms')
+    plt.xlabel('Count')
+    plt.ylabel('Terms')
+    #displaying to allow for manual fine tuning of plot features
+    plt.show()
+    plt.savefig("Frequency_of_NCIT_terms.png")
 
 
